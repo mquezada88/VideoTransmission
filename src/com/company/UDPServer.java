@@ -12,12 +12,11 @@ class UDPServer {
         {
             DatagramSocket serverSocket = new DatagramSocket(9876);
 
-            byte[] receiveData = new byte[1024];
-            byte[] sendData  = new byte[1024];
+            byte[] receiveData;
+            byte[] sendData;
 
             while(true)
             {
-
                 receiveData = new byte[1024];
 
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -26,31 +25,29 @@ class UDPServer {
 
                 serverSocket.receive(receivePacket);
 
-                String sentence = new String(receivePacket.getData());
+                // start transmit video
+                byte[] msg = receivePacket.getData();
+                if (msg[0] == 1)
+                {
+                    InetAddress IPAddress = receivePacket.getAddress();
+                    int port = receivePacket.getPort();
 
-                InetAddress IPAddress = receivePacket.getAddress();
+                    System.out.println ("From: " + IPAddress + ":" + port);
+                    System.out.println ("Command: " + msg[0]);
 
-                int port = receivePacket.getPort();
-
-                System.out.println ("From: " + IPAddress + ":" + port);
-                System.out.println ("Message: " + sentence);
-
-                String capitalizedSentence = sentence.toUpperCase();
-
-                sendData = capitalizedSentence.getBytes();
-
-                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-
-                serverSocket.send(sendPacket);
-
+                    // encode video
+                    sendData = "VIDEO TRANSMISSON".getBytes();
+                    //send video
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+                    serverSocket.send(sendPacket);
+                }
             }
-
         }
-        catch (SocketException ex) {
+        catch (SocketException ex)
+        {
             System.out.println("UDP Port 9876 is occupied.");
             System.exit(1);
         }
-
     }
 }
 

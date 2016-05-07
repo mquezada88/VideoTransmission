@@ -12,11 +12,6 @@ class UDPClient
 
     public UDPClient(String sHostName)
     {
-        String s1;
-        ArrayList lines = new ArrayList();
-        int size;
-        BufferedReader br;
-
         try {
             IPAddress = InetAddress.getByName(sHostName);
             System.out.println ("Attemping to connect to " + IPAddress +") via UDP port 9876");
@@ -26,61 +21,32 @@ class UDPClient
             System.err.println(ex);
             System.exit(1);
         }
-
-
-        // set up the buffered reader to read from the keyboard
-        try {
-            br = new BufferedReader (new FileReader ("/home/alex/IdeaProjects/VideoTransmition/src/com/company/test"));
-            s1 = br.readLine();
-            //s1 = System.console().readLine();
-            while (s1 != null)
-            {
-                lines.add(s1);
-                s1 = br.readLine ();
-            }
-            size = lines.size();
-            System.out.println ("ArrayList lines has size of: " + size);
-
+        try
+        {
             done = false;
 
             DatagramSocket clientSocket = new DatagramSocket();
-            for (int i = 0; i < size ; i++)
-            {
+            byte[] sendData = {1};
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 9876);
+            clientSocket.send(sendPacket);
 
-                byte[] sendData = new byte[1024];
-
-                s1 = (String) lines.get(i);
-                sendData = s1.getBytes();
-
-                System.out.println ("Sending data to " + sendData.length +" bytes to server from line " + (i + 1));
-                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 9876);
-
-                clientSocket.send(sendPacket);
-            }
             done = true;
-
             byte[] receiveData = new byte[1024];
-
             keepGoing = true;
 
-            DatagramPacket receivePacket =
-                    new DatagramPacket(receiveData, receiveData.length);
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
             System.out.println ("Waiting for return packet");
+
             clientSocket.setSoTimeout(10000);
 
+            // decoding video
             while (keepGoing)
             {
-                try {
+                try
+                {
                     clientSocket.receive(receivePacket);
                     String modifiedSentence = new String(receivePacket.getData());
-
-                    //InetAddress returnIPAddress = receivePacket.getAddress();
-
-                    //int port = receivePacket.getPort();
-
-                    //System.out.println ("From server at: " + returnIPAddress +
-                    //                    ":" + port);
                     System.out.println("Message: " + modifiedSentence);
 
                 }
@@ -90,7 +56,6 @@ class UDPClient
                     if (done)
                         keepGoing = false;
                 }
-
             }
             clientSocket.close();
         }
@@ -99,7 +64,6 @@ class UDPClient
             System.err.println(ex);
         }
     }
-
 
     public static void main(String args[]) throws Exception
     {
