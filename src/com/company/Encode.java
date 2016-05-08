@@ -1,30 +1,20 @@
 package com.company;
 
+import net.bramp.ffmpeg.FFmpeg;
+import net.bramp.ffmpeg.FFmpegExecutor;
+import net.bramp.ffmpeg.FFprobe;
+import net.bramp.ffmpeg.builder.FFmpegBuilder;
 import org.jcodec.api.JCodecException;
 import org.jcodec.api.awt.FrameGrab;
-import org.jcodec.codecs.h264.H264Encoder;
-import org.jcodec.codecs.h264.H264Utils;
 import org.jcodec.common.FileChannelWrapper;
 import org.jcodec.common.NIOUtils;
-import org.jcodec.common.model.ColorSpace;
-import org.jcodec.common.model.Picture;
-import org.jcodec.containers.mp4.MP4Packet;
-import org.jcodec.scale.AWTUtil;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 class Encode
 {
-    public Encode()
-    {
-
-    }
     public void Encode()
     {
         FileChannelWrapper ch = null;
@@ -47,29 +37,40 @@ class Encode
             NIOUtils.closeQuietly(ch);
         }
     }
-/*
-    public void encodeImage(BufferedImage bi) throws IOException {
-        if (toEncode == null) {
-            toEncode = Picture.create(getWidth(), getHeight(), ColorSpace.YUV420);
-        }
 
-        // Perform conversion
-        for (int i = 0; i < 3; i++)
-            Arrays.fill(toEncode.getData()[i], 0);
-        transform.transform(AWTUtil.fromBufferedImage(bi), toEncode);
+    public void FFTest() throws IOException {
+        FFmpeg ffmpeg = new FFmpeg("/path/to/ffmpeg");
+        FFprobe ffprobe = new FFprobe("/path/to/ffprobe");
 
-        // Encode image into H.264 frame, the result is stored in '_out' buffer and return
-        _out.clear();
-        ByteBuffer result = encoder.encodeFrame(_out, toEncode);
+        FFmpegBuilder builder = new FFmpegBuilder()
 
-        // Based on the frame above form correct MP4 packet
-        spsList.clear();
-        ppsList.clear();
-        H264Utils.encodeMOVPacket(result, spsList, ppsList);
+                .setInput("input.mp4")     // Filename, or a FFmpegProbeResult
+                .overrideOutputFiles(true) // Override the output if it exists
 
-        // Add packet to video track
-        outTrack.addFrame(new MP4Packet(result, frameNo, fps, 1, frameNo, true, null, frameNo, 0));
+                .addOutput("output.mp4")   // Filename for the destination
+                .setFormat("mp4")        // Format is inferred from filename, or can be set
+                .setTargetSize(250_000)  // Aim for a 250KB file
 
-        frameNo++;
-    }*/
+                .disableSubtitle()       // No subtiles
+
+                .setAudioChannels(1)         // Mono audio
+                .setAudioCodec("aac")        // using the aac codec
+                .setAudioSampleRate(48_000)  // at 48KHz
+                .setAudioBitRate(32768)      // at 32 kbit/s
+
+                .setVideoCodec("libx264")     // Video using x264
+                .setVideoFrameRate(24, 1)     // at 24 frames per second
+                .setVideoResolution(640, 480) // at 640x480 resolution
+
+                .setStrict(FFmpegBuilder.Strict.EXPERIMENTAL) // Allow FFmpeg to use experimental specs
+                .done();
+
+        FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);
+
+        // Run a one-pass encode
+        executor.createJob(builder).run();
+
+        // Or run a two-pass encode (which is slower at the cost of better quality)
+        executor.createTwoPassJob(builder).run();
+    }
 }

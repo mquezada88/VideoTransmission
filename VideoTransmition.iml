@@ -7,7 +7,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="org.boofcv:jcodec:0.19" level="project" />
-    <orderEntry type="library" exported="" name="org.jcodec:jcodec-javase:0.1.9" level="project" />
+    <orderEntry type="library" name="org.boofcv:jcodec:0.19" level="project" />
+    <orderEntry type="library" name="org.jcodec:jcodec-javase:0.1.9" level="project" />
+    <orderEntry type="library" exported="" name="net.bramp.ffmpeg:ffmpeg:0.4" level="project" />
   </component>
 </module>
